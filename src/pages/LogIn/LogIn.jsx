@@ -48,7 +48,8 @@ const Login = () => {
       return setDoc(userRef, {
         username,
         email,
-        id: response.user.uid
+        id: response.user.uid,
+        noteList: []
       })
     })
     .then(() => toast.success('Registration Successful'))
