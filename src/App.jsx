@@ -1,8 +1,18 @@
-import React from 'react'
+import React, { useState } from 'react';
+import Login from './pages/LogIn/LogIn';
 
 const App = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
   return (
-    <div className='bg-red-500'>App</div>
+    <div>
+      {
+        loggedIn ? (<div>Logged In</div>) : (
+          <div className="body h-screen flex justify-content-center items-center bg-center bg-cover text-white">
+            <Login/>
+          </div>
+        )
+      }
+    </div>
   )
 }
 
