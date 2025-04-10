@@ -1,8 +1,8 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import {auth, db} from '../../firebase'
 import React, { useState } from 'react'
 import { toast } from 'react-toastify';
-import { doc, setDoc } from "firebase/firestore";
+import { collection, doc, setDoc } from "firebase/firestore";
 // import { uploadFile } from '../../../lib/uploadFile';
 
 const Login = () => {
@@ -29,49 +29,60 @@ const Login = () => {
     setLoading(true);
     const formData = new FormData(e.target.closest('form'));
     const {email, password} = Object.fromEntries(formData);
-
-    try {
-      console.log(email, password);
-      signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message)
-    } finally {
-      setLoading(false)
-    }
+    signInWithEmailAndPassword(auth, email, password)
+    .then(response => toast.success(`Welcome back, ${auth.currentUser.displayName}`))
+    .catch(err => toast.error('Login Failed', err.message))
+    .finally(() => setLoading(false))
   }
-  const handleSignup = async (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.target.closest('form'));
     const {username, email, password} = Object.fromEntries(formData);
-    
-    try {
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      // const fileUrl = await uploadFile(avatar.file);
-      // console.log(fileUrl);
-      
-      // Adding new user data to DB
-      await setDoc(doc(db, 'users', response.user.uid), {
+    createUserWithEmailAndPassword(auth, email, password)
+    .then(response => {
+      updateProfile(auth.currentUser, {
+        displayName: username
+      })
+      const userRef = doc(collection(db, 'users'), response.user.uid);
+      return setDoc(userRef, {
         username,
         email,
-        // avatar: fileUrl,
-        id: response.user.uid,
-      });
+        id: response.user.uid
+      })
+    })
+    .then(() => toast.success('Registration Successful'))
+    .catch(err => console.error('Registration failed, ', err.message))
+    .finally(() => setLoading(false));
+    // const formData = new FormData(e.target.closest('form'));
+    // const {username, email, password} = Object.fromEntries(formData);
+    
+    // try {
+    //   const response = await createUserWithEmailAndPassword(auth, email, password);
+    //   // const fileUrl = await uploadFile(avatar.file);
+    //   // console.log(fileUrl);
+      
+    //   // Adding new user data to DB
+    //   await setDoc(doc(db, 'users', response.user.uid), {
+    //     username,
+    //     email,
+    //     // avatar: fileUrl,
+    //     id: response.user.uid,
+    //   });
 
-      toast.success('Account created successfully')
+    //   toast.success('Account created successfully')
 
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
+    // } catch (error) {
+    //   console.log(error);
+    //   toast.error(error.message);
+    // } finally {
+    //   setLoading(false);
+    // }
 
   }
 
   return (
-    <div className='p-10 flex h-full w-full'>
+    <div className='p-10 flex h-full w-full bg-[#00000077] backdrop-blur-sm'>
       <div className="loginSec w-[50%] flex flex-col justify-center items-center gap-y-4 border-e-1 border-white">
         <h1 className='text-2xl font-bold'>Welcome Back!</h1>
         <form className='flex flex-col gap-y-5' onSubmit={handleLogin}>
