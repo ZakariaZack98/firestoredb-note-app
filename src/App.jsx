@@ -9,6 +9,7 @@ import NoteCard from "./components/noteCard";
 const App = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [addTaskMode, setAddTaskMode] = useState(false);
+  const [editTaskMode, setEditTaskMode] = useState(true);
   const [notesData, setNotesData] = useState([]);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -19,35 +20,24 @@ const App = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User logged in:", user);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if(user) {
         setUserLoggedIn(true);
-
-        const docRef = doc(db, 'users', user.uid);
-
-        // Listen for real-time updates
-        const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
+        const docRef = doc(db, 'users', user.uid)
+        const unsubSnapshot = onSnapshot(docRef, (docSnap) => {
+          if(docSnap.exists()) {
             const fetchedNotesData = docSnap.data().noteList || [];
-            console.log("Real-time fetched notes:", fetchedNotesData);
-            setNotesData(fetchedNotesData.filter(data => data.completed === false));
-          } else {
-            console.log("No such document!");
-          }
-        });
-
-        // Cleanup the snapshot listener when the user logs out
-        return () => unsubscribeSnapshot();
-      } else {
-        console.log("No user is logged in.");
-        setUserLoggedIn(false);
+            setNotesData(fetchedNotesData.filter(note => note.completed === false));
+          } else console.log('No such docs')
+        })
+        return () => unsubSnapshot();
       }
-    });
-
-    // Cleanup the auth state listener when the component unmounts
-    return () => unsubscribe();
-  }, []);
+      else {
+        setUserLoggedIn(false)
+      }
+    })
+    return () => unsub();
+  }, [])
 
   const changeHandler = (e) => {
     let updatedTask = {};
@@ -121,7 +111,76 @@ const App = () => {
 
   if (userLoggedIn) {
     return (
-      <div className="body min-h-screen bg-center bg-cover text-white font-poppins">
+      <div className="body relative min-h-screen bg-center bg-cover text-white font-poppins">
+        <div
+              className={`addNote absolute rounded-2xl bg-white text-black p-5 w-[50dvw] h-[60dvh] ${editTaskMode ? 'visible' : 'hidden'
+                }`}
+              style={{ zIndex: 50, top: '0%', left: '50%', transform: 'translate(-50%, 50%)'}}
+            >
+              <form className="z-50">
+                <div className="flex items-center gap-x-3">
+                  <label htmlFor="title" className="text-lg">
+                    Title:{' '}
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={newTask.title}
+                    className="border-2 border-black rounded-md px-2 py-1 w-full"
+                    onChange={(e) => changeHandler(e)}
+                  />
+                </div>
+                <div className="flex items-center gap-x-3 my-3">
+                  <label htmlFor="type">Select Type:</label>
+                  <select
+                    name="type"
+                    id="type"
+                    className="px-4 py-2 border-2 border-black rounded-md"
+                    value={newTask.type}
+                    onChange={(e) => changeHandler(e)}
+                  >
+                    <option value="Personal">Personal</option>
+                    <option value="Business">Business</option>
+                    <option value="Others">Others</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-y-3">
+                  <label htmlFor="note">Note:</label>
+                  <textarea
+                    name="note"
+                    id="note"
+                    className="p-3 border-2 border-black rounded-lg h-[30dvh]"
+                    value={newTask.note}
+                    onChange={(e) => changeHandler(e)}
+                  ></textarea>
+                </div>
+                <div className="flex w-full justify-end my-2 gap-x-3">
+                  <button
+                    className="px-6 py-2 bg-red-500 text-white rounded-lg cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setAddTaskMode(false);
+                      setNewTask({
+                        title: '',
+                        type: 'Personal',
+                        note: '',
+                        createdAt: '',
+                        completed: false,
+                      });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-500 text-white rounded-lg cursor-pointer"
+                    onClick={(e) => addNote(e)}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
         <div className="p-20 backdrop-blur-2xl h-full">
           <h1 className="font-semibold text-5xl font-poppins">
             Hello, {auth.currentUser?.displayName}
