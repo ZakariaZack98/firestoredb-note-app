@@ -5,11 +5,13 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { arrayUnion, doc, updateDoc, onSnapshot, arrayRemove, getDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
 import NoteCard from "./components/noteCard";
+import EditPrompt from "./components/EditPrompt";
 
 const App = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [addTaskMode, setAddTaskMode] = useState(false);
-  const [editTaskMode, setEditTaskMode] = useState(true);
+  const [selectedTask, setSelectedTask] = useState({});
+  const [editTaskMode, setEditTaskMode] = useState(false);
   const [notesData, setNotesData] = useState([]);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -21,11 +23,11 @@ const App = () => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if(user) {
+      if (user) {
         setUserLoggedIn(true);
         const docRef = doc(db, 'users', user.uid)
         const unsubSnapshot = onSnapshot(docRef, (docSnap) => {
-          if(docSnap.exists()) {
+          if (docSnap.exists()) {
             const fetchedNotesData = docSnap.data().noteList || [];
             setNotesData(fetchedNotesData.filter(note => note.completed === false));
           } else console.log('No such docs')
@@ -87,6 +89,11 @@ const App = () => {
     }
   }
 
+  const handleEdit = note => {
+    setSelectedTask(note);
+    setEditTaskMode(true);
+  }
+
   const addNote = async (e) => {
     e.preventDefault();
     const userRef = doc(db, 'users', auth.currentUser.uid);
@@ -112,75 +119,7 @@ const App = () => {
   if (userLoggedIn) {
     return (
       <div className="body relative min-h-screen bg-center bg-cover text-white font-poppins">
-        <div
-              className={`addNote absolute rounded-2xl bg-white text-black p-5 w-[50dvw] h-[60dvh] ${editTaskMode ? 'visible' : 'hidden'
-                }`}
-              style={{ zIndex: 50, top: '0%', left: '50%', transform: 'translate(-50%, 50%)'}}
-            >
-              <form className="z-50">
-                <div className="flex items-center gap-x-3">
-                  <label htmlFor="title" className="text-lg">
-                    Title:{' '}
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={newTask.title}
-                    className="border-2 border-black rounded-md px-2 py-1 w-full"
-                    onChange={(e) => changeHandler(e)}
-                  />
-                </div>
-                <div className="flex items-center gap-x-3 my-3">
-                  <label htmlFor="type">Select Type:</label>
-                  <select
-                    name="type"
-                    id="type"
-                    className="px-4 py-2 border-2 border-black rounded-md"
-                    value={newTask.type}
-                    onChange={(e) => changeHandler(e)}
-                  >
-                    <option value="Personal">Personal</option>
-                    <option value="Business">Business</option>
-                    <option value="Others">Others</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-y-3">
-                  <label htmlFor="note">Note:</label>
-                  <textarea
-                    name="note"
-                    id="note"
-                    className="p-3 border-2 border-black rounded-lg h-[30dvh]"
-                    value={newTask.note}
-                    onChange={(e) => changeHandler(e)}
-                  ></textarea>
-                </div>
-                <div className="flex w-full justify-end my-2 gap-x-3">
-                  <button
-                    className="px-6 py-2 bg-red-500 text-white rounded-lg cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setAddTaskMode(false);
-                      setNewTask({
-                        title: '',
-                        type: 'Personal',
-                        note: '',
-                        createdAt: '',
-                        completed: false,
-                      });
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-blue-500 text-white rounded-lg cursor-pointer"
-                    onClick={(e) => addNote(e)}
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </div>
+        <EditPrompt task={selectedTask}/>
         <div className="p-20 backdrop-blur-2xl h-full">
           <h1 className="font-semibold text-5xl font-poppins">
             Hello, {auth.currentUser?.displayName}
