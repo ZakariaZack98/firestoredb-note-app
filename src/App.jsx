@@ -10,8 +10,8 @@ import EditPrompt from "./components/EditPrompt";
 const App = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [addTaskMode, setAddTaskMode] = useState(false);
-  const [selectedTask, setSelectedTask] = useState({});
-  const [editTaskMode, setEditTaskMode] = useState(false);
+  const [selectedNote, setselectedNote] = useState({});
+  const [editNoteMode, setEditNoteMode] = useState(false);
   const [notesData, setNotesData] = useState([]);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -90,8 +90,8 @@ const App = () => {
   }
 
   const handleEdit = note => {
-    setSelectedTask(note);
-    setEditTaskMode(true);
+    setselectedNote(note);
+    setEditNoteMode(true);
   }
 
   const addNote = async (e) => {
@@ -119,7 +119,11 @@ const App = () => {
   if (userLoggedIn) {
     return (
       <div className="body relative min-h-screen bg-center bg-cover text-white font-poppins">
-        <EditPrompt task={selectedTask}/>
+        <div className={`absolute w-full h-full flex justify-center items-center ${editNoteMode ? 'visible' : 'hidden'}`}>
+          {
+            editNoteMode && <EditPrompt note={selectedNote} editNoteMode={editNoteMode} setEditNoteMode={setEditNoteMode} selectedNote={selectedNote}/>
+          }
+        </div>
         <div className="p-20 backdrop-blur-2xl h-full">
           <h1 className="font-semibold text-5xl font-poppins">
             Hello, {auth.currentUser?.displayName}
@@ -206,7 +210,7 @@ const App = () => {
           </div>
           <div className="noteGrid flex flex-wrap items-stretch gap-3 my-10">
             {
-              notesData?.map(note => <NoteCard key={note.createdAt} date={note.createdAt} title={note.title} type={note.type} note={note.note} clickHandler={() => handleDeleteNote(note)} completeHandler={() => handleComplete(note)} />)
+              notesData?.map(note => <NoteCard key={note.createdAt} date={note.createdAt} title={note.title} type={note.type} note={note.note} clickHandler={() => handleDeleteNote(note)} completeHandler={() => handleComplete(note)} editHandler={() => handleEdit(note)}/>)
             }
           </div>
           <button onClick={() => signOut(auth)}>Log out</button>
