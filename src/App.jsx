@@ -97,7 +97,7 @@ const App = () => {
   const addNote = async (e) => {
     e.preventDefault();
     const userRef = doc(db, 'users', auth.currentUser.uid);
-    const finalTask = { ...newTask, createdAt: Date.now() };
+    const finalTask = { ...newTask, createdAt: Date.now(), completed: false};
     try {
       await updateDoc(userRef, {
         noteList: arrayUnion(finalTask),
@@ -124,7 +124,7 @@ const App = () => {
             editNoteMode && <EditPrompt note={selectedNote} editNoteMode={editNoteMode} setEditNoteMode={setEditNoteMode} selectedNote={selectedNote}/>
           }
         </div>
-        <div className="p-20 backdrop-blur-2xl h-full">
+        <div className="p-20 backdrop-blur-2xl h-screen">
           <h1 className="font-semibold text-5xl font-poppins">
             Hello, {auth.currentUser?.displayName}
           </h1>

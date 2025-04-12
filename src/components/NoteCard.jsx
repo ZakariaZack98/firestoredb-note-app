@@ -7,10 +7,10 @@ const NoteCard = ({date, title, type, note, clickHandler, completeHandler, editH
       <span className="absolute text-2xl right-5 top-4 z-10" onClick={clickHandler}>
       <FaDeleteLeft/>
       </span>
-      <span className="absolute text-2xl right-5 top-10 z-10" onClick={completeHandler}>
+      <span className="absolute text-2xl right-15 top-4 z-10" onClick={completeHandler}>
       <FaCheck/>
       </span>
-      <span className="absolute text-2xl right-5 top-15 z-10" onClick={editHandler}>
+      <span className="absolute text-2xl right-25 top-4 z-10" onClick={editHandler}>
       <FaPen/>
       </span>
       <p className='text-sm opacity-50'>{new Date(date).toDateString()}</p>
