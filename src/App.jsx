@@ -20,7 +20,9 @@ const App = () => {
     createdAt: '',
     completed: false
   });
-
+  /**
+   * TODO: FETCH & SHOW THE NOTE WHEN AN USER IS LOGGED IN==================================
+   * */ 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -41,6 +43,7 @@ const App = () => {
     return () => unsub();
   }, [])
 
+  // TODO: NOTE INPUT CHANGE HANDLER==========================================================
   const changeHandler = (e) => {
     let updatedTask = {};
     if (e.target.name === 'title') {
@@ -53,6 +56,36 @@ const App = () => {
     setNewTask(updatedTask);
   };
 
+  /**
+   * TODO: ADD A NOTE TO DATABASE & UPDATE FEED================================================
+   * @param {note} object
+   * */ 
+  const addNote = async (e) => {
+    e.preventDefault();
+    const userRef = doc(db, 'users', auth.currentUser.uid);
+    const finalTask = { ...newTask, createdAt: Date.now(), completed: false};
+    try {
+      await updateDoc(userRef, {
+        noteList: arrayUnion(finalTask),
+      });
+      toast.success('Task Added Successfully');
+      setAddTaskMode(false);
+      setNewTask({
+        title: '',
+        type: 'Personal',
+        note: '',
+        createdAt: '',
+        completed: false,
+      });
+    } catch (err) {
+      toast.error(`Error adding task: ${err.message}`);
+    }
+  };
+
+  /**
+   * TODO: DELETE THE NOTE FROM DATABASE & UPDATE FEED=========================================
+   * @param {note} object
+   * */ 
   async function handleDeleteNote(note) {
     console.log("Note to delete:", note); // Log the note being passed
     const docRef = doc(db, 'users', auth.currentUser.uid);
@@ -67,6 +100,11 @@ const App = () => {
     }
   }
 
+  /**
+   * !EXPERIMENTAL FEATURE
+   * TODO: COMPLETE THE TASK (NOTE) FROM DATABASE & UPDATE FEED=================================
+   * @param {note} object
+   * */ 
   async function handleComplete(note) {
     console.log("Note to update:", note);
     const docRef = doc(db, 'users', auth.currentUser.uid);
@@ -89,32 +127,15 @@ const App = () => {
     }
   }
 
+  /**
+   * TODO: SHOW THE NOTE EDIT PROMPT WITH SELECTED NOTE INPUTS==================================
+   * @param {note} object
+   * */ 
   const handleEdit = note => {
     setselectedNote(note);
     setEditNoteMode(true);
   }
 
-  const addNote = async (e) => {
-    e.preventDefault();
-    const userRef = doc(db, 'users', auth.currentUser.uid);
-    const finalTask = { ...newTask, createdAt: Date.now(), completed: false};
-    try {
-      await updateDoc(userRef, {
-        noteList: arrayUnion(finalTask),
-      });
-      toast.success('Task Added Successfully');
-      setAddTaskMode(false);
-      setNewTask({
-        title: '',
-        type: 'Personal',
-        note: '',
-        createdAt: '',
-        completed: false,
-      });
-    } catch (err) {
-      toast.error(`Error adding task: ${err.message}`);
-    }
-  };
 
   if (userLoggedIn) {
     return (

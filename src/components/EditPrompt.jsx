@@ -13,6 +13,11 @@ const EditPrompt = ({ editNoteMode, setEditNoteMode, selectedNote }) => {
     }));
   };
 
+
+  /**
+  * TODO: UPDATE THE NOTE WITH UPDATED INPUT & UPDATE FEED =========================================================
+  * @param {event} object formdata from the edit prompt
+  * */ 
   const updateNote = async (e) => {
     e.preventDefault();
     const docRef = doc(db, 'users', auth.currentUser.uid);
